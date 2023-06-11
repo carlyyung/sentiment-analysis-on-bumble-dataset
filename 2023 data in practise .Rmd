@@ -1,0 +1,432 @@
+---
+title: '2023'
+author: "carly"
+date: "2023-02-02"
+output:
+  word_document: default
+  pdf_document: default
+---
+
+To read the dataset:
+```{r }
+bumble<- read.csv("data/bumble_google_play_reviews 2023.csv", stringsAsFactors = T)
+```
+
+To inspect the dataset:
+```{r }
+bumble
+str(bumble) 
+```
+
+To look at the overall score Bumble recieved from users:
+```{r }
+score.factorised<- as.factor(bumble$score)
+levels(score.factorised) #number of levels
+mean(bumble$score)
+#average
+mean.bumble<- mean(bumble$score)
+mean.bumble
+table<- table(bumble$score)
+barplot(table, main = "bumble score distribution", 
+        xlab="score",
+        ylab="frequency")
+
+```
+
+The project divides the dataset by score of 1 to 5: 
+```{r }
+#score of 1 data
+bumble_1=bumble[bumble$score==1,]
+#score of 2 data
+bumble_2=bumble[bumble$score==2,]
+#score of 3 data
+bumble_3=bumble[bumble$score==3,]
+#score of 4 data
+bumble_4=bumble[bumble$score==4,]
+#score of 5 data
+bumble_5=bumble[bumble$score==5,]
+```
+
+To look at the most frequent words from user comments who also given the app the score of 1 out of 5, it allows the project to conduct sentiment analysis for each score, which may offer some reasoning behind each specific score: 
+```{r }
+#score of 1 data, the project only looks at the sentiment of the tweets, we extract only the variable 'content':
+bumble_1_content<- bumble_1$content
+bumble.content.1<- as.character(bumble_1_content)
+
+#level 2, the project only looks at the sentiment of the tweets, we extract only the variable 'content':
+bumble_2_content<- bumble_2$content
+bumble.content.2<- as.character(bumble_2_content)
+
+#level 3, the project only looks at the sentiment of the tweets, we extract only the variable 'content':
+bumble_3_content<- bumble_3$content
+bumble.content.3<- as.character(bumble_3_content)
+
+#level 4, the project only looks at the sentiment of the tweets, we extract only the variable 'content':
+bumble_4_content<- bumble_4$content
+bumble.content.4<- as.character(bumble_4_content)
+
+#level 5, the project only looks at the sentiment of the tweets, we extract only the variable 'content':
+bumble_5_content<- bumble_5$content
+bumble.content.5<- as.character(bumble_5_content)
+
+
+```
+
+To clean this dataset, the project will remove special characters using the `gsub()` function to find and replace characters:
+```{r }
+#To remove all the hyperlinks
+library(stringr)
+url_regex <- "http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\\(\\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+"
+clean_a<- str_remove_all(bumble.content.1, url_regex)
+
+#The project uses the [^[:alnum:]] function to remove remove the speical characters ~!@#$%^&*(){}_+:"<>?,./;'[]-=
+clean_1 <- gsub("[[:punct:]]", "", bumble.content.1)
+clean_2 <- gsub("[[:punct:]]", "", bumble.content.2)
+clean_3 <- gsub("[[:punct:]]", "", bumble.content.3)
+clean_4 <- gsub("[[:punct:]]", "", bumble.content.4)
+clean_5 <- gsub("[[:punct:]]", "", bumble.content.5)
+```
+
+To remove stop words, the project uses the package stopwords:
+```{r}
+library(stopwords)
+```
+
+Now we can get a list of English stopwords:
+```{r}
+stopwords_en<- stopwords::stopwords("en")
+```
+
+To remove stopwords from each level: 
+```{r}
+#clean1
+rm.stopword1 <- unlist(lapply(clean_1, function(x) {paste(unlist(strsplit(x, " "))[!(unlist(strsplit(x, " ")) %in% stopwords_en)], collapse=" ")}))
+#clean2
+rm.stopword2 <- unlist(lapply(clean_2, function(x) {paste(unlist(strsplit(x, " "))[!(unlist(strsplit(x, " ")) %in% stopwords_en)], collapse=" ")}))
+#clean3
+rm.stopword3 <- unlist(lapply(clean_3, function(x) {paste(unlist(strsplit(x, " "))[!(unlist(strsplit(x, " ")) %in% stopwords_en)], collapse=" ")}))
+#clean4
+rm.stopword4 <- unlist(lapply(clean_4, function(x) {paste(unlist(strsplit(x, " "))[!(unlist(strsplit(x, " ")) %in% stopwords_en)], collapse=" ")}))
+#clean5
+rm.stopword5 <- unlist(lapply(clean_5, function(x) {paste(unlist(strsplit(x, " "))[!(unlist(strsplit(x, " ")) %in% stopwords_en)], collapse=" ")}))
+```
+
+To combine all  rows in 1:
+```{r}
+library(dplyr)
+#score of 1 
+clean_atibble1 <- data_frame(Text = rm.stopword1) # tibble aka neater data frame
+#score of 2  
+clean_atibble2 <- data_frame(Text = rm.stopword2) # tibble aka neater data frame
+#score of 3  
+clean_atibble3 <- data_frame(Text = rm.stopword3) # tibble aka neater data frame
+#score of 4 
+clean_atibble4 <- data_frame(Text = rm.stopword4) # tibble aka neater data frame
+#score of 5 
+clean_atibble5 <- data_frame(Text = rm.stopword5) # tibble aka neater data frame
+
+```
+
+The unnest_tokens() function from the tidytext package picks out the individual words and places them as rows:
+```{r}
+library(tidytext)
+library(dplyr) 
+#score of 1 
+bumble_words1 <- clean_atibble1 %>% unnest_tokens(output = word, input = Text)
+#score of 2 
+bumble_words2 <- clean_atibble2 %>% unnest_tokens(output = word, input = Text)
+#score of 3 
+bumble_words3 <- clean_atibble3 %>% unnest_tokens(output = word, input = Text)
+#score of 4 
+bumble_words4 <- clean_atibble4 %>% unnest_tokens(output = word, input = Text)
+#score of 5 
+bumble_words5 <- clean_atibble5 %>% unnest_tokens(output = word, input = Text)
+```
+
+To count words' frequency:
+```{r}
+#score of 1 
+bumble_wordcounts1 <- bumble_words1 %>% count(word, sort = TRUE)
+#score of 2 
+bumble_wordcounts2 <- bumble_words2 %>% count(word, sort = TRUE)
+#score of 3 
+bumble_wordcounts3 <- bumble_words3 %>% count(word, sort = TRUE)                                                        
+#score of 4 
+bumble_wordcounts4 <- bumble_words4 %>% count(word, sort = TRUE)
+#score of 5 
+bumble_wordcounts5 <- bumble_words5 %>% count(word, sort = TRUE)
+```
+
+To plot words' frequency in a graph using ggplot2: 
+```{r}
+library(ggplot2)
+#score of 1 
+bumble_wordcounts1 %>% 
+  filter(n > 100) %>% 
+  mutate(word = reorder(word, n)) %>% 
+    ggplot(aes(word, n)) + 
+    geom_col() +
+    coord_flip() +
+    labs(x = "Word \n", y = "\n Count ", title = "Frequent Words in Bumble comments when score = 1 ") +
+    geom_text(aes(label = n), hjust = 1.2, colour = "white", fontface = "bold") +
+    theme(plot.title = element_text(size=8), 
+        axis.title.x = element_text(face="bold", colour="darkblue", size = 12),
+        axis.title.y = element_text(face="bold", colour="darkblue", size = 12))
+
+
+ 
+#score of 2
+bumble_wordcounts2 %>% 
+  filter(n > 20) %>% 
+  mutate(word = reorder(word, n)) %>% 
+    ggplot(aes(word, n)) + 
+    geom_col() +
+    coord_flip() +
+    labs(x = "Word \n", y = "\n Count ", title = "Frequent Words in Bumble commnets when score = 2 ") +
+    geom_text(aes(label = n), hjust = 1.2, colour = "white", fontface = "bold") +
+    theme(plot.title = element_text(size = 8), 
+        axis.title.x = element_text(face="bold", colour="darkblue", size = 12),
+        axis.title.y = element_text(face="bold", colour="darkblue", size = 12))
+
+
+#score of 3
+bumble_wordcounts3 %>% 
+  filter(n > 10) %>% 
+  mutate(word = reorder(word, n)) %>% 
+    ggplot(aes(word, n)) + 
+    geom_col() +
+    coord_flip() +
+    labs(x = "Word \n", y = "\n Count ", title = "Frequent Words in Bumble comments when score = 3 ") +
+    geom_text(aes(label = n), hjust = 1.2, colour = "white", fontface = "bold") +
+    theme(plot.title = element_text(size = 8), 
+        axis.title.x = element_text(face="bold", colour="darkblue", size = 12),
+        axis.title.y = element_text(face="bold", colour="darkblue", size = 12))
+
+#score of 4
+bumble_wordcounts4 %>% 
+  filter(n > 10) %>% 
+  mutate(word = reorder(word, n)) %>% 
+    ggplot(aes(word, n)) + 
+    geom_col() +
+    coord_flip() +
+    labs(x = "Word \n", y = "\n Count ", title = "Frequent Words in Bumble comments when score = 4 ") +
+    geom_text(aes(label = n), hjust = 1.2, colour = "white", fontface = "bold") +
+    theme(plot.title = element_text(size = 8), 
+        axis.title.x = element_text(face="bold", colour="darkblue", size = 12),
+        axis.title.y = element_text(face="bold", colour="darkblue", size = 12))
+
+#score of 5
+bumble_wordcounts5 %>% 
+  filter(n > 10) %>% 
+  mutate(word = reorder(word, n)) %>% 
+    ggplot(aes(word, n)) + 
+    geom_col() +
+    coord_flip() +
+    labs(x = "Word \n", y = "\n Count ", title = "Frequent Words in Bumble comments when score = 5 ") +
+    geom_text(aes(label = n), hjust = 1.2, colour = "white", fontface = "bold") +
+    theme(plot.title = element_text(size = 8), 
+        axis.title.x = element_text(face="bold", colour="darkblue", size = 12),
+        axis.title.y = element_text(face="bold", colour="darkblue", size = 12))
+```
+To better visualise the most used words, we can generate a word cloud: 
+```{r}
+
+library(wordcloud)
+#score of 1
+wordcloud(clean_atibble1, scale = c(2, 1), min.freq = 100, colors = rainbow(30))
+#score of 2
+wordcloud(clean_atibble2, scale = c(2, 1), min.freq = 20, colors = rainbow(30))
+#score of 3
+wordcloud(clean_atibble3, scale = c(2, 1), min.freq = 10, colors = rainbow(30))
+#score of 4
+wordcloud(clean_atibble4, scale = c(2, 1), min.freq = 10, colors = rainbow(30))
+#score of 5
+wordcloud(clean_atibble5, scale = c(2, 1), min.freq = 10, colors = rainbow(30))
+```
+
+
+Get the sentiment of each score 1's comment: 
+```{r}
+library(syuzhet)
+#score of 1
+sentiment_text1 = get_nrc_sentiment(rm.stopword1)
+summary(sentiment_text1)
+# To plot the sentiment from the tweets into a histogram:
+for (c in colnames(sentiment_text1)){
+  print(c)
+  hist(sentiment_text1[,c], main=c)
+}
+```
+
+Get the sentiment of each score 2's comment: 
+```{r}
+#score of 2
+sentiment_text2 = get_nrc_sentiment(rm.stopword2)
+summary(sentiment_text2)
+# To plot the sentiment from the tweets into a histogram:
+for (c in colnames(sentiment_text2)){
+  print(c)
+  hist(sentiment_text2[,c], main=c)
+}
+```
+
+Get the sentiment of each score 3's comment: 
+```{r}
+#score of 3
+sentiment_text3 = get_nrc_sentiment(rm.stopword3)
+summary(sentiment_text3)
+# To plot the sentiment from the tweets into a histogram:
+for (c in colnames(sentiment_text3)){
+  print(c)
+  hist(sentiment_text3[,c], main=c)
+}
+```
+
+Get the sentiment of each score 4's comment: 
+```{r}
+#score of 4
+sentiment_text4 = get_nrc_sentiment(rm.stopword4)
+summary(sentiment_text4)
+# To plot the sentiment from the tweets into a histogram:
+for (c in colnames(sentiment_text4)){
+  print(c)
+  hist(sentiment_text4[,c], main=c)
+}
+```
+
+Get the sentiment of each score 5's comment: 
+```{r}
+#score of 5
+sentiment_text5 = get_nrc_sentiment(rm.stopword5)
+summary(sentiment_text5)
+# To plot the sentiment from the tweets into a histogram:
+for (c in colnames(sentiment_text5)){
+  print(c)
+  hist(sentiment_text5[,c], main=c)
+}
+
+```
+
+  
+Correlation between comments' sentiment with score:
+```{r}
+#average sentiment of each score e.g. average anger sentiment within comments with score 1, 2, 3, 4 and 5 
+content.anger.sentiment<- c(0.5734,0.4583, 0.305, 0.1216,0.05722)
+content.anticipation.sentiment<-c(0.8446, 0.8438,0.5957,0.5203, 0.4033)
+content.disgust.sentiment<-c(0.467,0.3333,0.1631, 0.09459, 0.05177)  
+content.fear.sentiment<-c(0.3923,0.349, 0.3262,0.1284,0.05722)
+content.joy.sentiment<-c(0.5485,0.5729, 0.4113, 0.4662, 0.515) 
+content.sadness.sentiment<-c(0.4515,0.4219, 0.3475, 0.189, 0.06539)
+content.surprise.sentiment<-c(0.3142, 0.3125,0.3121, 0.3108, 0.2643)
+content.trust.sentiment<-c(0.8738, 0.8802, 0.6383, 0.5135, 0.485)
+content.negative.sentiment<-c(1.114, 1.031, 0.5887, 0.3311,0.1199)
+content.positive.sentiment<-c(1.134, 1.161,0.9645, 0.7838,0.7466)
+content.score<-c(1,2,3,4,5)
+
+#saving all the average sentiment into a dataframe 
+df <- data.frame(content.anger.sentiment,
+                 content.anticipation.sentiment,
+                 content.disgust.sentiment,
+                 content.fear.sentiment,
+                 content.joy.sentiment,
+                 content.sadness.sentiment,
+                 content.surprise.sentiment,
+                 content.trust.sentiment,
+                 content.negative.sentiment,
+                 content.positive.sentiment,
+                 content.score)
+
+#Next we need to plot the correlation between sentiment and score 
+#anger correlation
+cor(df$content.anger.sentiment, df$content.score, method = "pearson")
+plot(df[,c("content.anger.sentiment", "content.score")])
+title(main = "Anger sentiment to score correlation plot",
+      cex.main = 1,   font.main = 1, col.main = "darkgreen",
+      cex.sub = 2, font.sub = 3, col.sub = "darkgreen",
+      col.lab ="black"
+      )
+
+#anticipation correlation
+cor(df$content.anticipation.sentiment, df$content.score, method = "pearson")
+plot(df[,c("content.anticipation.sentiment", "content.score")])
+title(main = "Anticipation sentiment to score correlation plot",
+      cex.main = 1,   font.main = 1, col.main = "darkgreen",
+      cex.sub = 2, font.sub = 3, col.sub = "darkgreen",
+      col.lab ="black"
+      )
+
+#disgust correlation
+cor(df$content.disgust.sentiment, df$content.score, method = "pearson")
+plot(df[,c("content.disgust.sentiment", "content.score")])
+title(main = "Disgust sentiment to score correlation plot",
+      cex.main = 1,   font.main = 1, col.main = "darkgreen",
+      cex.sub = 2, font.sub = 3, col.sub = "darkgreen",
+      col.lab ="black"
+      )
+
+#fear correlation
+cor(df$content.fear.sentiment, df$content.score, method = "pearson")
+plot(df[,c("content.fear.sentiment", "content.score")])
+title(main = "Fear sentiment to score correlation plot",
+      cex.main = 1,   font.main = 1, col.main = "darkgreen",
+      cex.sub = 2, font.sub = 3, col.sub = "darkgreen",
+      col.lab ="black"
+      )
+
+#joy correlation
+cor(df$content.joy.sentiment, df$content.score, method = "pearson")
+plot(df[,c("content.joy.sentiment", "content.score")])
+title(main = "Joy sentiment to score correlation plot",
+      cex.main = 1,   font.main = 1, col.main = "darkgreen",
+      cex.sub = 2, font.sub = 3, col.sub = "darkgreen",
+      col.lab ="black"
+      )
+
+#sadness correlation
+cor(df$content.sadness.sentiment, df$content.score, method = "pearson")
+plot(df[,c("content.sadness.sentiment", "content.score")])
+title(main = "Sadness sentiment to score correlation plot",
+      cex.main = 1,   font.main = 1, col.main = "darkgreen",
+      cex.sub = 2, font.sub = 3, col.sub = "darkgreen",
+      col.lab ="black"
+      )
+
+#surprise correlation
+cor(df$content.surprise.sentiment, df$content.score, method = "pearson")
+plot(df[,c("content.surprise.sentiment", "content.score")])
+title(main = "Surprise sentiment to score correlation plot",
+      cex.main = 1,   font.main = 1, col.main = "darkgreen",
+      cex.sub = 2, font.sub = 3, col.sub = "darkgreen",
+      col.lab ="black"
+      )
+
+#trust correlation
+cor(df$content.trust.sentiment, df$content.score, method = "pearson")
+plot(df[,c("content.trust.sentiment", "content.score")])
+title(main = "Trust sentiment to score correlation plot",
+      cex.main = 1,   font.main = 1, col.main = "darkgreen",
+      cex.sub = 2, font.sub = 3, col.sub = "darkgreen",
+      col.lab ="black"
+      )
+
+#negative correlation
+cor(df$content.negative.sentiment, df$content.score, method = "pearson")
+plot(df[,c("content.negative.sentiment", "content.score")])
+title(main = "Negative sentiment to score correlation plot",
+      cex.main = 1,   font.main = 1, col.main = "darkgreen",
+      cex.sub = 2, font.sub = 3, col.sub = "darkgreen",
+      col.lab ="black"
+      )
+
+#positive correlation
+cor(df$content.positive.sentiment, df$content.score, method = "pearson")
+plot(df[,c("content.positive.sentiment", "content.score")])
+title(main = "Positive sentiment to score correlation plot",
+      cex.main = 1,   font.main = 1, col.main = "darkgreen",
+      cex.sub = 2, font.sub = 3, col.sub = "darkgreen",
+      col.lab ="black"
+      )
+```
+
+
+
